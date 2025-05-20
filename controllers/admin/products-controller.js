@@ -36,8 +36,21 @@ const addProduct = async (req, res) => {
       averageReview,
     } = req.body;
 
+    // Ensure sizes is an array and has at least one size
+    if (!Array.isArray(sizes) || sizes.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "At least one size is required",
+      });
+    }
+
     // Calculate totalStock from sizes
-    const calculatedTotalStock = sizes.reduce((total, size) => total + size.stock, 0);
+    const calculatedTotalStock = sizes.reduce((total, size) => {
+      if (!size.stock || isNaN(size.stock)) {
+        return total;
+      }
+      return total + Number(size.stock);
+    }, 0);
 
     const newlyCreatedProduct = new Product({
       image,
@@ -45,11 +58,11 @@ const addProduct = async (req, res) => {
       description,
       category,
       brand,
-      price,
-      salePrice,
+      price: Math.round(Number(price)), // Convert to VND and round
+      salePrice: salePrice ? Math.round(Number(salePrice)) : 0, // Convert to VND and round
       sizes,
       totalStock: calculatedTotalStock,
-      averageReview,
+      averageReview: averageReview || 0,
     });
 
     await newlyCreatedProduct.save();
@@ -61,7 +74,7 @@ const addProduct = async (req, res) => {
     console.log(e);
     res.status(500).json({
       success: false,
-      message: "Error occured",
+      message: "Error occurred",
     });
   }
 };
