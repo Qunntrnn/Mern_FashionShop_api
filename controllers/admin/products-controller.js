@@ -126,7 +126,7 @@ const editProduct = async (req, res) => {
     findProduct.price = price === "" ? 0 : price || findProduct.price;
     findProduct.salePrice = salePrice === "" ? 0 : salePrice || findProduct.salePrice;
     findProduct.sizes = sizes || findProduct.sizes;
-    findProduct.totalStock = sizes ? sizes.reduce((total, size) => total + size.stock, 0) : findProduct.totalStock;
+    findProduct.totalStock = sizes ? sizes.reduce((total, size) => total + (Number(size.stock) || 0), 0) : findProduct.totalStock;
     findProduct.image = image || findProduct.image;
     findProduct.averageReview = averageReview || findProduct.averageReview;
 
