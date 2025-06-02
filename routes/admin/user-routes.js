@@ -6,8 +6,27 @@ const { isAdmin } = require("../../middleware/auth");
 // Get all users
 router.get("/", isAdmin, async (req, res) => {
   try {
-    const users = await User.find({}, { password: 0 });
-    res.json({ success: true, users });
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    const [users, total] = await Promise.all([
+      User.find({}, { password: 0 })
+        .skip(skip)
+        .limit(limit),
+      User.countDocuments({})
+    ]);
+
+    res.json({ 
+      success: true, 
+      users,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit)
+      }
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
