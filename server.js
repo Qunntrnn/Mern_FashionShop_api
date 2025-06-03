@@ -20,26 +20,48 @@ const commonFeatureRouter = require("./routes/common/feature-routes");
 //create a separate file for this and then import/use that file here
 
 mongoose
-  .connect("mongodb+srv://quannt:kvhuhyqbor1oHOre@cluster0.izpjqsz.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
+  .connect(
+    "mongodb+srv://quannt:kvhuhyqbor1oHOre@cluster0.izpjqsz.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+  )
   .then(() => console.log("MongoDB connected"))
   .catch((error) => console.log(error));
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// CORS configuration
+const allowedOrigins = [
+  "http://localhost:5173",
+  "hmern-fashion-shop-client.vercel.app", // Thêm domain của Vercel
+  "https://mern-fashion-shop-client-git-main-quannt.vercel.app", // Thêm domain preview của Vercel
+];
+
 app.use(
   cors({
-    origin: "http://localhost:5173",
-    methods: ["GET", "POST", "DELETE", "PUT"],
+    origin: function (origin, callback) {
+      // Allow requests with no origin (like mobile apps or curl requests)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.indexOf(origin) === -1) {
+        const msg =
+          "The CORS policy for this site does not allow access from the specified Origin.";
+        return callback(new Error(msg), false);
+      }
+      return callback(null, true);
+    },
+    methods: ["GET", "POST", "DELETE", "PUT", "PATCH", "OPTIONS"],
     allowedHeaders: [
       "Content-Type",
       "Authorization",
       "Cache-Control",
       "Expires",
       "Pragma",
+      "X-Requested-With",
+      "Accept",
     ],
     credentials: true,
     exposedHeaders: ["Set-Cookie"],
+    maxAge: 86400, // 24 hours
   })
 );
 
@@ -60,4 +82,3 @@ app.use("/api/shop/review", shopReviewRouter);
 app.use("/api/common/feature", commonFeatureRouter);
 
 app.listen(PORT, () => console.log(`Server is now running on port ${PORT}`));
-
