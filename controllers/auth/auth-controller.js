@@ -1,6 +1,6 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
-const User = require("../../models/user");
+const User = require("../../models/User");
 const { authMiddleware } = require("../../middleware/auth");
 
 const TOKEN_EXPIRY = "24h"; // Increase token expiry to 24 hours
