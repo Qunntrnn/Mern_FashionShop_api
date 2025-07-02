@@ -1,23 +1,46 @@
 const Order = require("../../models/Order");
+const mongoose = require("mongoose");
 
 const getAllOrdersOfAllUsers = async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
+    const { search = "", status = "" } = req.query;
+
+    let filter = {};
+    if (search) {
+      if (mongoose.Types.ObjectId.isValid(search)) {
+        filter._id = search;
+      } else {        
+
+        filter.$or = [
+          { "cartItems.title": { $regex: search, $options: "i" } }
+        ];
+      }
+    }
+    if (status) {
+      filter.orderStatus = status;
+    }
 
     const [orders, total] = await Promise.all([
-      Order.find({})
+      Order.find(filter)
         .skip(skip)
         .limit(limit)
         .sort({ orderDate: -1 }),
-      Order.countDocuments({})
+      Order.countDocuments(filter)
     ]);
 
     if (!orders.length) {
-      return res.status(404).json({
-        success: false,
-        message: "No orders found!",
+      return res.status(200).json({
+        success: true,
+        data: [],
+        pagination: {
+          total: 0,
+          page,
+          limit,
+          totalPages: 0
+        }
       });
     }
 
